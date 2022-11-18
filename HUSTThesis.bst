@@ -283,7 +283,7 @@ FUNCTION {format.lang}
 FUNCTION {format.names}
 { 's :=
   #1 'nameptr :=
-  s num.names$ 'numnames := 
+  s num.names$ 'numnames :=
   numnames 'namesleft :=
     { namesleft #0 > }
     { s nameptr
@@ -609,12 +609,12 @@ FUNCTION {format.in.ed.booktitle}
     { editor empty$
     { lang empty$
         { "in: " booktitle * }
-        { "见：" booktitle * }
+        { "��: " booktitle * }
       if$
     }
     { lang empty$
         { "in: " format.editors * ", " * booktitle * }
-        { "见：" * format.editors * booktitle * }
+        { ". ��: " * format.editors * booktitle * }
       if$
     }
       if$
@@ -769,20 +769,6 @@ FUNCTION {format.address.school}
 }
 
 
-FUNCTION {format.year.pages}
-
-{ year field.or.null
-  pages empty$
-    'skip$
-    { duplicate$ empty$
-    { pop$ format.pages }
-    { ". " * pages n.dashify * }
-      if$
-    }
-  if$
-}
-
-
 FUNCTION {format.title.type}
 { title empty$
     { type empty$
@@ -831,6 +817,14 @@ FUNCTION {book} { output.bibitem
   fin.entry
 }
 
+FUNCTION {article.type}
+{ lang empty$
+    { "[J]" }
+    { "[期刊论文]" }
+  if$
+}
+
+
 FUNCTION {article}
 { output.bibitem
   format.authors "author" output.check
@@ -839,7 +833,9 @@ FUNCTION {article}
   new.block
   crossref missing$
     { %journal emphasize "journal" output.check
-      journal "journal" output.check
+      journal "journal" output.check 
+      new.block
+      format.title remove.dots " " * article.type * output
       %format.date "year" output.check
       %new.block
       year output
@@ -875,15 +871,23 @@ FUNCTION {incollection}
   fin.entry
 }
 
+FUNCTION {inproceedings.type}
+{ lang empty$
+    { "[C]" }
+    { "[会议论文]" }
+  if$
+}
+
 FUNCTION {inproceedings}
 { output.bibitem
   format.authors "author" output.check
   new.block
   format.title "title" output.check
   new.block
+  format.title remove.dots " " * inproceedings.type * output
+  new.block
   crossref missing$
     { format.in.ed.booktitle "booktitle" output.check
-      new.block
       %format.bvolume output
       %format.number.series output
       %format.pages output
@@ -891,13 +895,12 @@ FUNCTION {inproceedings}
     { organization publisher new.sentence.checkb
       organization output
       publisher output
-      %new.block
       format.year.chapter.pages output
       %year output
     }
     { %address output.nonnull
       format.address.publisher output  
-      format.year.pages output
+      format.year.chapter.pages output
       %year output
       %new.sentence
       %organization output
@@ -999,7 +1002,8 @@ FUNCTION {manual}
 
 FUNCTION {masterthesis.type}
 { lang empty$
-    { "[Master Thesis]" }
+    % { "[Master Thesis]" }
+    { "[M]" }
     { "[硕士学位论文]" }
   if$
 }
@@ -1008,10 +1012,35 @@ FUNCTION {mastersthesis}
 { output.bibitem
   format.authors "author" add.period$ output.check
   new.block
-  format.title remove.dots ": " * masterthesis.type * output
+%   format.title remove.dots ": " * masterthesis.type * output
+  format.title remove.dots * masterthesis.type * output
   new.block
   format.address.school output
   %format.madd "address" output.check
+  %school "school" output.check  
+  format.date "year" output.check
+  new.block
+  note output
+  fin.entry
+}
+
+FUNCTION {phdthesis.type}
+{ lang empty$
+    % { "[PhD Dissertation]" }
+    { "[D]" }
+    { "[博士学位论文]" }
+  if$ 
+}
+
+FUNCTION {phdthesis}
+{ output.bibitem
+  format.authors "author" add.period$ output.check
+  new.block
+%   format.title remove.dots ": " * phdthesis.type * output
+  format.title remove.dots * phdthesis.type * output
+  new.block
+  format.address.school output
+  %address output
   %school "school" output.check  
   format.date "year" output.check
   new.block
@@ -1034,27 +1063,7 @@ FUNCTION {misc}
   empty.misc.check
 }
 
-FUNCTION {phdthesis.type}
-{ lang empty$
-    { "[PhD Dissertation]" }
-    { "[博士学位论文]" }
-  if$ 
-}
 
-FUNCTION {phdthesis}
-{ output.bibitem
-  format.authors "author" add.period$ output.check
-  new.block
-  format.title remove.dots ": " * phdthesis.type * output
-  new.block
-  format.address.school output
-  %address output
-  %school "school" output.check  
-  format.date "year" output.check
-  new.block
-  note output
-  fin.entry
-}
 
 FUNCTION {proceedings}
 { output.bibitem
